@@ -143,25 +143,25 @@ credit-app/
 ### Arquitectura
 ```mermaid
 flowchart LR
-  A[React (Vite)] --HTTP JSON--> B[ASP.NET Core API]
-  B --EF Core--> C[(SQLite / SQL Server)]
-  A <--CORS + API Key--> B
+    A[React (Vite)] -->|HTTP JSON| B[ASP.NET Core API]
+    B -->|EF Core| C[(SQLite / SQL Server)]
+    A <-->|CORS + API Key| B
 ```
 
 ### Secuencia de solicitud
 ```mermaid
 sequenceDiagram
-  participant U as Usuario
-  participant FE as Frontend
-  participant API as Backend
-  participant DB as BD
+    participant U as Usuario
+    participant FE as Frontend
+    participant API as Backend
+    participant DB as BD
 
-  U->>FE: Completa formulario
-  FE->>API: POST /apply (x-api-key)
-  API->>DB: Inserta cliente y solicitud
-  DB-->>API: OK
-  API-->>FE: { status, score, requestId }
-  FE-->>U: Muestra resultado
+    U->>FE: Completa formulario
+    FE->>API: POST /apply (x-api-key)
+    API->>DB: Inserta cliente y solicitud
+    DB-->>API: OK
+    API-->>FE: { status, score, requestId }
+    FE-->>U: Muestra resultado
 ```
 
 ---
