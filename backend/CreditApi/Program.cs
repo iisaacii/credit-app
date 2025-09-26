@@ -1,23 +1,29 @@
 using CreditApi.Data;
 using CreditApi.Middlewares;
-using CreditApi.Services;                 // 👈 NUEVO: using del servicio de scoring
+using CreditApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
-// EF Core con SQLite (archivo local credit.db)
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("Default") ?? "Data Source=credit.db"));
+// Detecta si corre dentro de contenedor
+var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
+// Elige la cadena adecuada (Docker → SqlServer_DockerNet, Local → SqlServer_Localhost)
+var connectionString = builder.Configuration.GetConnectionString(
+    isDocker ? "SqlServer_DockerNet" : "SqlServer_Localhost"
+);
+
+// EF Core con SQL Server (⚠️ antes estaba UseSqlite)
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connectionString));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 👇 NUEVO: registra el servicio de scoring para inyección de dependencias
-builder.Services.AddScoped<ICreditScoringService, CreditScoringService>(); // 👈 NUEVO
+// Servicio de scoring
+builder.Services.AddScoped<ICreditScoringService, CreditScoringService>();
 
-// Swagger con definición de ApiKey
+// Swagger + ApiKey
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Credit API", Version = "v1" });
@@ -43,7 +49,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// CORS: permitir el frontend de Vite
+// CORS
 var allowLocal = "_allowLocal";
 builder.Services.AddCors(options =>
 {
