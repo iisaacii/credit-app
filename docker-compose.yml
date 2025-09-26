@@ -17,14 +17,14 @@ services:
       - mssql_data:/var/opt/mssql           # datos persistentes de SQL Server
     
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Your_password123", "-C", "-Q", "SELECT 1"]
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Your_password123!", "-C", "-Q", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # ===========
-  # API (C#)
-  # ===========
+  # ===========  
+  # API (C#)  
+  # ===========  
   api:
     build: ./backend/CreditApi
     container_name: credit-api
@@ -32,13 +32,12 @@ services:
       - "5131:80"                           # http://localhost:5131 -> puerto 80 del contenedor
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      
     depends_on:
       - sql                                  # arranca api después de sql
 
-  # ==========================
-  # Frontend (React + NGINX)
-  # ==========================
+  # ==========================  
+  # Frontend (React + NGINX)  
+  # ==========================  
   web:
     build: ./frontend
     container_name: credit-web
@@ -47,8 +46,21 @@ services:
     depends_on:
       - api
 
-# ===========
-# Volúmenes
-# ===========
+  # ==========================  
+  # ML Service (Python + FastAPI)  
+  # ==========================  
+  ml-service:
+    build: ./ml-service
+    container_name: credit-ml
+    depends_on:
+      - sql
+    ports:
+      - "8000:8000"                         # http://localhost:8000/docs
+    environment:
+      - PYTHONUNBUFFERED=1
+
+# ===========  
+# Volúmenes  
+# ===========  
 volumes:
   mssql_data:

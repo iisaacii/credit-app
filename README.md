@@ -9,6 +9,7 @@ El sistema permite:
 - Persistir clientes y solicitudes en una base de datos.
 - Consultar **indicadores estadísticos** (aprobados vs rechazados).
 - Simular varias solicitudes automáticamente para pruebas y análisis.
+- **Nuevo:** Predecir aprobaciones con un **modelo de Machine Learning** entrenado con registros históricos.
 
 ### 🛠️ Stack utilizado
 - **Frontend:** React + Vite (con Recharts para gráficos).
@@ -16,8 +17,12 @@ El sistema permite:
 - **Base de datos:**  
   - **SQLite** (por defecto, rápida para pruebas locales).  
   - **SQL Server** (soportado en Docker, incluye script `create_schema.sql` con tablas + Stored Procedure).
+<<<<<<< HEAD
+=======
+- **Microservicio ML:** FastAPI + scikit-learn (modelo RandomForestClassifier).  
+>>>>>>> 21c9bfc (Agregar microservicio ML con FastAPI y modelo de clasificación para predicción de créditos)
 - **Seguridad:** API Key sencilla (`x-api-key: 123`) + CORS.
-- **Contenedores:** Docker (frontend, backend, BD opcional).
+- **Contenedores:** Docker (frontend, backend, BD y servicio ML).
 - **Pruebas:** 
   - Backend → xUnit.  
   - Frontend → Vitest + React Testing Library.
@@ -63,7 +68,12 @@ docker compose up --build
 Esto levanta:
 - **Frontend:** http://localhost:5173  
 - **Backend (Swagger):** http://localhost:5131/swagger  
+<<<<<<< HEAD
 - **Base de datos:** SQL Server 2022 (usuario: `sa`, contraseña: `Your_password123!`)
+=======
+- **Base de datos:** SQL Server 2022 (usuario: `sa`, contraseña: `Your_password123!`)  
+- **ML Service:** http://localhost:8000/docs
+>>>>>>> 21c9bfc (Agregar microservicio ML con FastAPI y modelo de clasificación para predicción de créditos)
 
 ### 2. Inicializar la base de datos
 El script `sql/create_schema.sql` crea:
@@ -71,7 +81,11 @@ El script `sql/create_schema.sql` crea:
 - Datos iniciales de sucursales
 - Stored Procedure: `sp_InsertCreditRequest`
 
+<<<<<<< HEAD
 Para ejecutarlo dentro del contenedor:
+=======
+Ejecutarlo dentro del contenedor:
+>>>>>>> 21c9bfc (Agregar microservicio ML con FastAPI y modelo de clasificación para predicción de créditos)
 
 ```bash
 docker exec -it credit-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Your_password123!" -C -i "/docker-entrypoint-initdb.d/create_schema.sql"
@@ -82,6 +96,38 @@ docker exec -it credit-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "
 docker exec -it credit-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Your_password123!" -C -d CreditDB -Q "SELECT COUNT(*) FROM dbo.Branches;"
 ```
 Debería devolver **3**.
+<<<<<<< HEAD
+=======
+
+---
+
+## 🤖 Microservicio ML (FastAPI)
+El microservicio entrena un **modelo RandomForestClassifier** con los registros históricos de `CreditRequests`.  
+Expone un endpoint:
+
+- **POST /predict**  
+  Entrada:
+  ```json
+  {
+    "income": 25000,
+    "employment_months": 24,
+    "amount": 50000,
+    "term_months": 12
+  }
+  ```
+  Respuesta:
+  ```json
+  {
+    "prediction": "APROBADO",
+    "probabilities": {
+      "RECHAZADO": 0.15,
+      "APROBADO": 0.85
+    }
+  }
+  ```
+
+Documentación interactiva: [http://localhost:8000/docs](http://localhost:8000/docs)
+>>>>>>> 21c9bfc (Agregar microservicio ML con FastAPI y modelo de clasificación para predicción de créditos)
 
 ---
 
@@ -94,7 +140,7 @@ Debería devolver **3**.
 
 ---
 
-## 📡 Endpoints principales
+## 📡 Endpoints principales (Backend C#)
 - `POST /api/credit/apply` → crea solicitud y devuelve `{ status, score, requestId }`
 - `GET  /api/credit/stats` → estadísticas `{ approved, rejected, total }`
 - `GET  /api/credit/all`   → historial de solicitudes
@@ -124,6 +170,10 @@ npm test
   - Usuario: `sa`  
   - Contraseña: `Your_password123!`  
   - Script inicial: `sql/create_schema.sql` (incluye tablas + `sp_InsertCreditRequest`).  
+<<<<<<< HEAD
+=======
+- **Datos de entrenamiento ML**: Se pueden generar con un script que inserta 5000 registros lógicos de prueba en `CreditRequests`.
+>>>>>>> 21c9bfc (Agregar microservicio ML con FastAPI y modelo de clasificación para predicción de créditos)
 
 ---
 
@@ -154,6 +204,10 @@ credit-app/
     public/
     Dockerfile
     .env.example
+  ml-service/
+    ml_service.py
+    requirements.txt
+    Dockerfile
   sql/
     create_schema.sql
   docker-compose.yml
@@ -171,6 +225,7 @@ flowchart LR
     A[React (Vite)] --> X[HTTP JSON] --> B[ASP.NET Core API]
     B --> Y[EF Core] --> C[(SQLite / SQL Server)]
     A <-- Z[CORS + API Key] --> B
+    B --> M[FastAPI ML Service]
 ```
 
 ### Secuencia de solicitud
@@ -180,6 +235,7 @@ sequenceDiagram
     participant FE as Frontend
     participant API as Backend
     participant DB as BD
+    participant ML as ML Service
 
     U->>FE: Completa formulario
     FE->>API: POST /apply (x-api-key)
@@ -187,6 +243,9 @@ sequenceDiagram
     DB-->>API: OK
     API-->>FE: { status, score, requestId }
     FE-->>U: Muestra resultado
+    FE->>ML: POST /predict (datos crédito)
+    ML-->>FE: { prediction, probabilities }
+    FE-->>U: Muestra predicción IA
 ```
 
 ---
@@ -197,6 +256,7 @@ sequenceDiagram
    - Ejecutar `create_schema.sql` con `sqlcmd`  
    - Frontend: http://localhost:5173  
    - Backend: http://localhost:5131/swagger  
+   - ML Service: http://localhost:8000/docs  
    - API Key: `123`
 
 2. **Sin Docker (SQLite)**  
@@ -207,3 +267,4 @@ sequenceDiagram
    - En el form (frontend) → llenar datos → enviar → ver resultado.  
    - En indicadores → ver aprobados/rechazados.  
    - En Swagger → usar `/simulate` y `/stats`.  
+   - En FastAPI → probar `/predict` con un JSON de ejemplo.
