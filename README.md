@@ -13,7 +13,9 @@ El sistema permite:
 ### 🛠️ Stack utilizado
 - **Frontend:** React + Vite (con Recharts para gráficos).
 - **Backend:** ASP.NET Core Web API + Entity Framework Core.
-- **Base de datos:** SQLite (por defecto), script SQL Server incluido para entrega.
+- **Base de datos:**  
+  - **SQLite** (por defecto, rápida para pruebas locales).  
+  - **SQL Server** (soportado en Docker, incluye script `create_schema.sql` con tablas + Stored Procedure).
 - **Seguridad:** API Key sencilla (`x-api-key: 123`) + CORS.
 - **Contenedores:** Docker (frontend, backend, BD opcional).
 - **Pruebas:** 
@@ -30,10 +32,10 @@ git clone https://github.com/iisaacii/credit-app.git
 cd credit-app
 ```
 
-### 2. Backend
+### 2. Backend (modo SQLite por defecto)
 ```bash
 cd backend/CreditApi
-dotnet ef database update   # crea SQLite local
+dotnet ef database update   # crea SQLite local (credit.db)
 dotnet run
 ```
 - Servidor en: **http://localhost:5131**
@@ -52,15 +54,34 @@ npm run dev
 
 ## 🐳 Ejecución con Docker (recomendado)
 
+### 1. Levantar todos los servicios
 Desde la raíz del proyecto:
 ```bash
 docker compose up --build
 ```
 
+Esto levanta:
 - **Frontend:** http://localhost:5173  
 - **Backend (Swagger):** http://localhost:5131/swagger  
+- **Base de datos:** SQL Server 2022 (usuario: `sa`, contraseña: `Your_password123!`)
 
-> Importante: Para probar endpoints en Swagger, presiona **Authorize** e ingresa API Key: `123`.
+### 2. Inicializar la base de datos
+El script `sql/create_schema.sql` crea:
+- Tablas (`Clients`, `Branches`, `CreditRequests`)
+- Datos iniciales de sucursales
+- Stored Procedure: `sp_InsertCreditRequest`
+
+Para ejecutarlo dentro del contenedor:
+
+```bash
+docker exec -it credit-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Your_password123!" -C -i "/docker-entrypoint-initdb.d/create_schema.sql"
+```
+
+### 3. Verificar conexión
+```bash
+docker exec -it credit-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Your_password123!" -C -d CreditDB -Q "SELECT COUNT(*) FROM dbo.Branches;"
+```
+Debería devolver **3**.
 
 ---
 
@@ -97,8 +118,12 @@ npm test
 ---
 
 ## 🗄️ Base de datos
-- Por defecto se usa **SQLite** (archivo `credit.db`, ignorado en Git).
-- En `/sql/create_schema.sql` se incluye un script de **SQL Server** con tablas y un **Stored Procedure extra** (`sp_InsertCreditRequest`).
+- **SQLite**: se usa por defecto (`credit.db`).  
+- **SQL Server**: 
+  - Servicio en Docker (`credit-sql`, puerto 1433).  
+  - Usuario: `sa`  
+  - Contraseña: `Your_password123!`  
+  - Script inicial: `sql/create_schema.sql` (incluye tablas + `sp_InsertCreditRequest`).  
 
 ---
 
@@ -166,14 +191,15 @@ sequenceDiagram
 
 ---
 
-## 🚀 Instrucciones para el evaluador
+## 🚀 Instrucciones rápidas 
 1. **Con Docker**  
    - `docker compose up --build`  
+   - Ejecutar `create_schema.sql` con `sqlcmd`  
    - Frontend: http://localhost:5173  
    - Backend: http://localhost:5131/swagger  
    - API Key: `123`
 
-2. **Sin Docker**  
+2. **Sin Docker (SQLite)**  
    - Backend: `dotnet ef database update && dotnet run` (puerto 5131)  
    - Frontend: `npm install && npm run dev` (puerto 5173)
 
