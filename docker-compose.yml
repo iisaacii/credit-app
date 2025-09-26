@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  api:
+    build: ./backend/CreditApi
+    container_name: credit-api
+    ports:
+      - "5131:80"        # Mapea http://localhost:5131 -> puerto 80 del contenedor
+    volumes:
+      - ./backend/CreditApi/credit.db:/app/credit.db  # Persistir SQLite
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    # Si usas appsettings.json con ApiKey, no necesitas pasarla por env aquí
+
+  web:
+    build: ./frontend
+    container_name: credit-web
+    ports:
+      - "5173:80"        # Sirve el build en http://localhost:5173
+    depends_on:
+      - api

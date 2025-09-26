@@ -1,0 +1,21 @@
+# --- Node/React ---
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.DS_Store
+frontend/npm-debug.log*
+
+# --- .NET ---
+backend/**/bin/
+backend/**/obj/
+backend/**/publish/
+backend/**/.vs/
+backend/CreditApi/credit.db
+
+# --- OS/Editor ---
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+**/.dockerignore
