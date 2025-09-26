@@ -143,9 +143,9 @@ credit-app/
 ### Arquitectura
 ```mermaid
 flowchart LR
-    A[React (Vite)] -->|HTTP JSON| B[ASP.NET Core API]
-    B -->|EF Core| C[(SQLite / SQL Server)]
-    A <-->|CORS + API Key| B
+    A[React (Vite)] --> X[HTTP JSON] --> B[ASP.NET Core API]
+    B --> Y[EF Core] --> C[(SQLite / SQL Server)]
+    A <-- Z[CORS + API Key] --> B
 ```
 
 ### Secuencia de solicitud
